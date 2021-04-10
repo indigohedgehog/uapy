@@ -177,14 +177,6 @@ def v4l2_map_quantization_default(is_rgb_or_hsv, colsp, ycbcr_enc):
                                           (colsp) == V4l2_Colorspace.BT2020)]
 
 
-class V4l2_Adobe(Enum):
-    def __str__(self):
-        return '{0}'.format(self.value)
-
-    V4l2_Colorspace_ADOBERGB = V4l2_Colorspace.OPRGB
-    V4l2_Xfer_Func_ADOBERGB = V4l2_Xfer_Func.OPRGB
-
-
 class V4l2_Priority(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
@@ -565,6 +557,12 @@ class V4l2_Frmival_Stepwise(Structure):
                 ('userbits', c_uint8 * 4)]
 
 
+class v4l2_Timecode(Structure):
+    _fields_ = [('type', c_uint32), ('flags', c_uint32), ('frames', c_uint8),
+                ('seconds', c_uint8), ('minutes', c_uint8), ('hours', c_uint8),
+                ('userbits', c_uint8 * 4)]
+
+
 class V4l2_Tc_Type(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
@@ -593,16 +591,6 @@ class V4l2_Tc_Userbits(Enum):
     _8BITCHARS = 0x0008
 
 
-class V4l2_Frmivalenum(Structure):
-    class _u(Union):
-        _fields_ = [('discrete', V4l2_Fract),
-                    ('stepwise', V4l2_Frmsize_Stepwise)]
-
-    _fields_ = [('index', c_uint32), ('pixel_format', c_uint32),
-                ('width', c_uint32), ('height', c_uint32), ('type', c_uint32),
-                ('_u', _u), ('reserved', c_uint32 * 2)]
-
-
 class V4l2_Jpeg_Marker(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
@@ -616,7 +604,46 @@ class V4l2_Jpegcompression(Structure):
                 ('COM_data', c_char * 60), ('jpeg_markers', c_uint32)]
 
 
-class Kernel_V4l2_Timeval(Structure):
-    _fields_ = [('tv_sec', c_longlong), ('tv_usec', c_int), ('__pad', c_int),
-                ('tv_usec', c_longlong )]
+class V4l2_Requestbuffers(Structure):
+    _fields_ = [('count', c_uint32), ('type', c_uint32), ('memory', c_uint32),
+                ('capabilities', c_uint32), ('reserved', c_uint32)]
 
+
+class V4l2_Buf_Cap_Supports(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (MMAP, USERPTR, DMABUF, REQUESTS, ORPHANED_BUFS,
+     M2M_HOLD_CAPTURE_BUF) = [1 << x for x in range(6)]
+
+
+class V4l2_Plane(Structure):
+    class _u(Union):
+        _fields_ = [('mem_offset', c_uint32), ('userptr', c_ulong),
+                    ('fd', c_int32)]
+
+    _fields_ = [('bytesused', c_uint32), ('length', c_uint32), ('_u', _u),
+                ('data_offset', c_uint32), ('reserved', c_uint32 * 11)]
+
+
+class timeval(Structure):
+    _fields_ = [
+        ('secs', c_long),
+        ('usecs', c_long),
+    ]
+
+
+class V4l2_Buffer(Structure):
+    class _u(Union):
+        _fields_ = [('offset', c_uint32), ('userptr', c_ulong),
+                    ('planes', V4l2_Plane), ('fd', c_int32)]
+
+    class _v(Union):
+        _fields_ = [('request_fd', c_int32), ('reserved', c_uint32)]
+
+    _fields_ = [('index', c_uint32), ('type', c_uint32),
+                ('bytesused', c_uint32), ('flags', c_uint32),
+                ('field', c_uint32), ('timestamp', timeval),
+                ('timecode', v4l2_Timecode), ('sequence', c_uint32),
+                ('memory', c_uint32), ('_u', _u), ('length', c_uint32),
+                ('reserved2', c_uint32), ('_v', _v)]
