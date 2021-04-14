@@ -1,8 +1,24 @@
 from ctypes import *
-import ctypes
 from enum import Enum
 
-from usb.util import CTRL_RECIPIENT_INTERFACE
+
+#to do: move to another module
+def _or(self, other):
+    if hasattr(other, 'value'):
+        other = other.value
+    return c_uint64(self.value | other)
+
+
+def _coerce(self, other):
+    try:
+        return self, self.__class__(other)
+    except TypeError:
+        return NotImplemented
+
+
+c_uint64.__or__ = _or
+c_uint64.__coerce__ = _coerce
+#to do
 
 
 def c_type(arg):
@@ -127,8 +143,8 @@ class V4l2_Colorspace(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
-    (DEFAULT, SMPTE170M, SMPTE240M, REC709, BT878, _470_SYSTEM_M,
-     _470_SYSTEM_BG, JPEG, SRGB, OPRGB, BT2020, RAW, DCI_P3) = range(13)
+    (DEFAULT, SMPTE170M, SMPTE240M, REC709, BT878, C470_SYSTEM_M,
+     C470_SYSTEM_BG, JPEG, SRGB, OPRGB, BT2020, RAW, DCI_P3) = range(13)
 
 
 def v4l2_map_colorspace_default(is_sdtv, is_hdtv):
@@ -142,7 +158,7 @@ class V4l2_Xfer_Func(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
-    (DEFAULT, _709, SRGB, OPRGB, SMPTE240M, NONE, DCI_P3, SMPTE2084) = range(8)
+    (DEFAULT, X709, SRGB, OPRGB, SMPTE240M, NONE, DCI_P3, SMPTE2084) = range(8)
 
 
 def v4l2_map_xfer_func_default(colsp):
@@ -161,7 +177,7 @@ class V4l2_Ycbcr_Enc(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
-    (DEFAULT, _601, _709, XV601, XV709, SYCC, BT2020, BT2020_CONST_LUM,
+    (DEFAULT, Y601, Y709, XV601, XV709, SYCC, BT2020, BT2020_CONST_LUM,
      SMPTE240M) = range(9)
 
 
@@ -171,7 +187,7 @@ class V4l2_Hsv_Enc(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
-    (_180, _256) = range(128, 130)
+    (H180, H256) = range(128, 130)
 
 
 def v4l2_map_ycbcr_enc_default(colsp):
@@ -742,7 +758,7 @@ class V4l2_Captureparm(Structure):
                 ('writebuffers', c_uint32), ('reserved', c_uint32 * 4)]
 
 
-class V4l2_Cropcap(ctypes.Structure):
+class V4l2_Cropcap(Structure):
     _fields_ = [
         ('type', c_type(V4l2_Buf_Type)),
         ('bounds', V4l2_Rect),
@@ -751,17 +767,47 @@ class V4l2_Cropcap(ctypes.Structure):
     ]
 
 
-# struct v4l2_crop {
-# 	__u32			type;	/* enum v4l2_buf_type */
-# 	struct v4l2_rect        c;
-# };
+class V4l2_Crop(Structure):
+    _fields_ = [('type', c_type(V4l2_Buf_Type)), ('c', V4l2_Rect)]
 
-# struct v4l2_selection {
-# 	__u32			type;
-# 	__u32			target;
-# 	__u32                   flags;
-# 	struct v4l2_rect        r;
-# 	__u32                   reserved[9];
-# };
 
-v4l2_std_id = ctypes.c_uint64
+class V4l2_Selection(Structure):
+    _fields_ = [('type', c_uint32), ('target', c_uint32), ('flags', c_uint32),
+                ('r', V4l2_Rect), ('reserved', c_uint32)]
+
+
+V4l2_Std_Id = c_uint64
+
+
+class V4l2_Std(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (PAL_B, PAL_B1, PAL_G, PAL_H, PAL_I, PAL_D, PAL_D1, PAL_K, PAL_M, PAL_N,
+     PAL_Nc, PAL_60, NTSC_M, NTSC_M_JP, NTSC_443, NTSC_M_KR, SECAM_B, SECAM_D,
+     SECAM_G, SECAM_H, SECAM_K, SECAM_K1, SECAM_L, SECAM_LC, ATSC_8_VSB,
+     ATSC_16_VSB) = [V4l2_Std_Id(1 << x) for x in range(26)]
+
+    NTSC = (NTSC_M | NTSC_M_JP | NTSC_M_KR)
+    SECAM_DK = (SECAM_D | SECAM_K | SECAM_K1)
+    SECAM = (SECAM_B | SECAM_G | SECAM_H | SECAM_DK | SECAM_L | SECAM_LC)
+    PAL_BG = (PAL_B | PAL_B1 | PAL_G)
+    PAL_DK = (PAL_D | PAL_D1 | PAL_K)
+    PAL = (PAL_BG | PAL_DK | PAL_H | PAL_I)
+    B = (PAL_B | PAL_B1 | SECAM_B)
+    G = (PAL_G | SECAM_G)
+    H = (PAL_H | SECAM_H)
+    L = (SECAM_L | SECAM_LC)
+    GH = (G | H)
+    DK = (PAL_DK | SECAM_DK)
+    BG = (B | G)
+    MN = (PAL_M | PAL_N | PAL_Nc | NTSC)
+    MTS = (NTSC_M | PAL_M | PAL_N | PAL_Nc)
+    S525_60 = (PAL_M | PAL_60 | NTSC | NTSC_443)
+    S625_50 = (PAL | PAL_N | PAL_Nc | SECAM)
+    ATSC = (ATSC_8_VSB | ATSC_16_VSB)
+    UNKNOWN = 0
+    ALL = (S525_60 | S625_50)
+
+
+
