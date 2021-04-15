@@ -53,37 +53,37 @@ class V4l2_Field(Enum):
     ) = range(10)
 
 
-def V4l2_Field_has_top(field):
+def v4l2_field_has_top(field):
     return (field == V4l2_Field.TOP or field == V4l2_Field.INTERLACED
             or field == V4l2_Field.INTERLACED_TB
             or field == V4l2_Field.INTERLACED_BT or field == V4l2_Field.SEQ_TB
             or field == V4l2_Field.SEQ_BT)
 
 
-def V4l2_Field_has_bottom(field):
+def v4l2_field_has_bottom(field):
     return (field == V4l2_Field.BOTTOM or field == V4l2_Field.INTERLACED
             or field == V4l2_Field.INTERLACED_TB
             or field == V4l2_Field.INTERLACED_BT or field == V4l2_Field.SEQ_TB
             or field == V4l2_Field.SEQ_BT)
 
 
-def V4l2_Field_has_both(field):
+def v4l2_field_has_both(field):
     return (field == V4l2_Field.INTERLACED or field == V4l2_Field.INTERLACED_TB
             or field == V4l2_Field.INTERLACED_BT or field == V4l2_Field.SEQ_TB
             or field == V4l2_Field.SEQ_BT)
 
 
-def V4l2_Field_has_t_or_b(field):
+def v4l2_field_has_t_or_b(field):
     return (field == V4l2_Field.BOTTOM or field == V4l2_Field.TOP
             or field == V4l2_Field.ALTERNATE)
 
 
-def V4l2_Field_is_interlaced(field):
+def v4l2_field_is_interlaced(field):
     return (field == V4l2_Field.INTERLACED or field == V4l2_Field.INTERLACED_TB
             or field == V4l2_Field.INTERLACED_BT)
 
 
-def V4l2_Field_is_sequential(field):
+def v4l2_field_is_sequential(field):
     return (field == V4l2_Field.SEQ_TB or field == V4l2_Field.SEQ_BT)
 
 
@@ -162,7 +162,7 @@ class V4l2_Xfer_Func(Enum):
 
 
 def v4l2_map_xfer_func_default(colsp):
-    return (((((V4l2_Xfer_Func._709,
+    return (((((V4l2_Xfer_Func.X709,
                 V4l2_Xfer_Func.SRGB)[colsp == V4l2_Colorspace.SRGB
                                      or colsp == V4l2_Colorspace.JPEG],
                V4l2_Xfer_Func.NONE)[colsp == V4l2_Colorspace.RAW],
@@ -191,10 +191,10 @@ class V4l2_Hsv_Enc(Enum):
 
 
 def v4l2_map_ycbcr_enc_default(colsp):
-    return (((V4l2_Ycbcr_Enc._601,
+    return (((V4l2_Ycbcr_Enc.Y601,
               V4l2_Ycbcr_Enc.SMPTE240M)[colsp == V4l2_Colorspace.SMPTE240M],
              V4l2_Ycbcr_Enc.BT2020)[colsp == V4l2_Colorspace.BT2020],
-            V4l2_Ycbcr_Enc._709)[colsp == V4l2_Colorspace.REC709
+            V4l2_Ycbcr_Enc.Y709)[colsp == V4l2_Colorspace.REC709
                                  or colsp == V4l2_Colorspace.DCI_P3]
 
 
@@ -610,7 +610,7 @@ class V4l2_Tc_Type(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
-    (_24FPS, _25FPS, _30FPS, _50FPS, _60FPS) = range(1, 6)
+    (T24FPS, T25FPS, T30FPS, T50FPS, T60FPS) = range(1, 6)
 
 
 class V4l2_Tc_Flag(Enum):
@@ -626,7 +626,7 @@ class V4l2_Tc_Userbits(Enum):
 
     field = 0x000C
     USERDEFINED = 0x0000
-    _8BITCHARS = 0x0008
+    T8BITCHARS = 0x0008
 
 
 class V4l2_Jpeg_Marker(Enum):
@@ -665,7 +665,7 @@ class V4l2_Plane(Structure):
                 ('data_offset', c_uint32), ('reserved', c_uint32 * 11)]
 
 
-class timeval(Structure):
+class Timeval(Structure):
     _fields_ = [
         ('secs', c_long),
         ('usecs', c_long),
@@ -682,13 +682,13 @@ class V4l2_Buffer(Structure):
 
     _fields_ = [('index', c_uint32), ('type', c_uint32),
                 ('bytesused', c_uint32), ('flags', c_uint32),
-                ('field', c_uint32), ('timestamp', timeval),
+                ('field', c_uint32), ('timestamp', Timeval),
                 ('timecode', v4l2_Timecode), ('sequence', c_uint32),
                 ('memory', c_uint32), ('_u', _u), ('length', c_uint32),
                 ('reserved2', c_uint32), ('_v', _v)]
 
 
-class v4l2_buf_flag(Enum):
+class V4l2_Buf_Flag(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -810,4 +810,61 @@ class V4l2_Std(Enum):
     ALL = (S525_60 | S625_50)
 
 
+class V4l2_Standard(Structure):
+    _fields_ = [('index', c_uint32), ('id', V4l2_Std_Id),
+                ('name', c_uint8 * 24), ('frameperiod', V4l2_Fract),
+                ('framelines', c_uint32), ('reserved', c_uint32 * 4)]
+
+
+class V4l2_Bt_Timings(Structure):
+    _pack_ = True
+    _fields_ = [('width', c_uint32), ('height', c_uint32),
+                ('interlaced', c_uint32), ('polarities', c_uint32),
+                ('pixelclock', c_uint64), ('hfrontporch', c_uint32),
+                ('hsync', c_uint32), ('hbackporch', c_uint32),
+                ('vfrontporch', c_uint32), ('vsync', c_uint32),
+                ('vbackporch', c_uint32), ('il_vfrontporch', c_uint32),
+                ('il_vsync', c_uint32), ('il_vbackporch', c_uint32),
+                ('standards', c_uint32), ('flags', c_uint32),
+                ('picture_aspect', V4l2_Fract), ('cea861_vic', c_uint8),
+                ('hdmi_vic', c_uint8), ('reserved', c_uint8 * 46)]
+
+
+class V4l2_Dv(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (VSYNC_POS_POL, HSYNC_POS_POL) = [1 << x for x in range(2)]
+    PROGRESSIVE = 0
+    INTERLACED = 1
+
+
+class V4l2_Dv_Bt_Std(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (CEA861, DMT, CVT, GTF, SDI) = [1 << x for x in range(5)]
+
+
+class V4l2_Dv_Fl(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (REDUCED_BLANKING, CAN_REDUCE_FPS, REDUCED_FPS, HALF_LINE, IS_CE_VIDEO,
+     FIRST_FIELD_EXTRA_LINE, HAS_PICTURE_ASPECT, HAS_CEA861_VIC, HAS_HDMI_VIC,
+     CAN_DETECT_REDUCED_FPS) = [1 << x for x in range(10)]
+
+
+
+def v4l2_dv_bt_blanking_width(bt: V4l2_Bt_Timings):
+    return (bt.hfrontporch + bt.hsync + bt.hbackporch)
+
+def v4l2_dv_bt_frame_width(bt: V4l2_Bt_Timings):
+    return (bt.width + v4l2_dv_bt_blanking_width(bt))
+
+def v4l2_dv_bt_blanking_height(bt: V4l2_Bt_Timings):
+    return (bt.vfrontporch + bt.vsync + bt.vbackporch + bt.il_vfrontporch + bt.il_vsync + bt.il_vbackporch)
+
+def v4l2_dv_bt_frame_height(bt: V4l2_Bt_Timings):
+    return (bt.height + v4l2_dv_bt_blanking_height(bt))
 
