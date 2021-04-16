@@ -115,7 +115,9 @@ def v4l2_type_is_output(type):
             or type == V4l2_Buf_Type.META_OUTPUT)
 
 
-class V4l2_Tuner(Enum):
+class V4l2_Tuner_Type(Enum):
+    _Type = c_uint32
+
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -855,16 +857,166 @@ class V4l2_Dv_Fl(Enum):
      CAN_DETECT_REDUCED_FPS) = [1 << x for x in range(10)]
 
 
-
 def v4l2_dv_bt_blanking_width(bt: V4l2_Bt_Timings):
     return (bt.hfrontporch + bt.hsync + bt.hbackporch)
+
 
 def v4l2_dv_bt_frame_width(bt: V4l2_Bt_Timings):
     return (bt.width + v4l2_dv_bt_blanking_width(bt))
 
+
 def v4l2_dv_bt_blanking_height(bt: V4l2_Bt_Timings):
-    return (bt.vfrontporch + bt.vsync + bt.vbackporch + bt.il_vfrontporch + bt.il_vsync + bt.il_vbackporch)
+    return (bt.vfrontporch + bt.vsync + bt.vbackporch + bt.il_vfrontporch +
+            bt.il_vsync + bt.il_vbackporch)
+
 
 def v4l2_dv_bt_frame_height(bt: V4l2_Bt_Timings):
     return (bt.height + v4l2_dv_bt_blanking_height(bt))
 
+
+class V4l2_Dv_Timings(Structure):
+    _pack_ = True
+    _fields_ = [('bt', V4l2_Bt_Timings), ('reserved', c_uint32 * 32)]
+
+
+class V4l2_Dv_Bt(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    D656_1120 = 0
+
+
+class V4l2_Enum_Dv_Timings(Structure):
+    _pack_ = True
+    _fields_ = [('index', c_uint32), ('pad', c_uint32),
+                ('reserved', c_uint32 * 2), ('timings', V4l2_Dv_Timings)]
+
+
+class V4l2_Bt_Timings_Cap(Structure):
+    _pack_ = True
+    _fields_ = [
+        ('min_width', c_uint32),
+        ('max_width', c_uint32),
+        ('min_height', c_uint32),
+        ('max_height', c_uint32),
+        ('min_pixelclock', c_uint32),
+        ('max_pixelclock', c_uint32),
+        ('standards', c_uint32),
+        ('capabilities', c_uint32),
+        ('reserved', c_uint32 * 16),
+    ]
+
+
+class V4l2_Dv_Bt_Cap(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (INTERLACED, PROGRESSIVE, REDUCED_BLANKING,
+     CUSTOM) = [1 << x for x in range(4)]
+
+
+class V4l2_Dv_Timings_Cap(Structure):
+    class _u(Union):
+        _fields_ = [('bt', V4l2_Bt_Timings), ('raw_data', c_uint32 * 32)]
+
+    _fields_ = [
+        ('type', c_uint32),
+        ('pad', c_uint32),
+        ('reserved', c_uint32 * 2),
+        ('_u', _u),
+    ]
+
+
+class V4l2_Input(Structure):
+    _fields_ = [('index', c_uint32), ('name', c_uint8), ('type', c_uint32),
+                ('audioset', c_uint32), ('tuner', c_type(V4l2_Tuner_Type)),
+                ('std', V4l2_Std_Id), ('status', c_uint32),
+                ('capabilities', c_uint32), ('reserved', c_uint32 * 3)]
+
+
+class V4l2_Input_Type(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (TUNER, CAMERA, TOUCH) = range(3)
+
+
+class V4l2_In_St(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (NO_POWER, NO_SIGNAL, NO_COLOR) = [1 << x for x in range(3)]
+    (HFLIP, VFLIP) = [1 << x for x in range(4, 6)]
+    (NO_H_LOCK, COLOR_KILL, NO_V_LOCK,
+     NO_STD_LOCK) = [1 << x for x in range(8, 12)]
+    (NO_SYNC, NO_EQU, NO_CARRIER) = [1 << x for x in range(16, 19)]
+    (MACROVISION, NO_ACCESS, VTR) = [1 << x for x in range(24, 27)]
+
+
+class V4l2_In_Cap(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+
+#define V4L2_IN_CAP_DV_TIMINGS		0x00000002
+#define V4L2_IN_CAP_CUSTOM_TIMINGS	V4L2_IN_CAP_DV_TIMINGS
+#define V4L2_IN_CAP_STD			0x00000004
+#define V4L2_IN_CAP_NATIVE_SIZE		0x00000008
+
+
+class V4l2_Output(Structure):
+    _fields_ = [('index', c_uint32), ('name', c_uint8 * 32),
+                ('type', c_uint32), ('audioset', c_uint32),
+                ('modulator', c_uint32), ('std', V4l2_Std_Id),
+                ('capabilities', c_uint32), ('reserved', c_uint32 * 3)]
+
+
+class V4l2_Output_Type(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+
+#define V4L2_OUTPUT_TYPE_MODULATOR		1
+#define V4L2_OUTPUT_TYPE_ANALOG			2
+#define V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY	3
+
+
+class V4l2_Out_Cap(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+
+#define V4L2_OUT_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
+#define V4L2_OUT_CAP_CUSTOM_TIMINGS	V4L2_OUT_CAP_DV_TIMINGS /* For compatibility */
+#define V4L2_OUT_CAP_STD		0x00000004 /* Supports S_STD */
+#define V4L2_OUT_CAP_NATIVE_SIZE	0x00000008 /* Supports setting native size */
+
+
+class V4l2_Control(Structure):
+    _fields_ = [('id', c_uint32), ('value', c_int32)]
+
+
+class V4l2_Ext_Control(Structure):
+    _pack_ = True
+
+    class _u(Union):
+        _fields_ = [('value', c_int32), ('value64', c_int64),
+                    ('string', POINTER(c_char)), ('p_u8', POINTER(c_uint8)),
+                    ('p_u16', POINTER(c_uint16)), ('p_u32', POINTER(c_uint32)),
+                    ('p_area', POINTER(V4l2_Area)), ('ptr', POINTER(c_void_p))]
+
+    _fields_ = [
+        ('id', c_uint32),
+        ('size', c_uint32),
+        ('reserved2', c_uint32),
+        ('_u', _u),
+    ]
+
+
+class V4l2_Ext_Controls(Structure):
+    class _u(Union):
+        _fields_ = [('which', c_uint32)]
+
+    _fields_ = [('_u', _u), ('count', c_uint32), ('error_idx', c_uint32),
+                ('request_fd', c_uint32), ('reserved', c_uint32),
+                ('controls', POINTER(V4l2_Ext_Control))]
