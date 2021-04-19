@@ -1,28 +1,14 @@
 from ctypes import *
-from enum import Enum
+from enum import IntEnum, Enum, IntFlag
+from util.ioctl import *
+from util.ctypes_tools import *
 
-
-#to do: move to another module
-def _or(self, other):
-    if hasattr(other, 'value'):
-        other = other.value
-    return c_uint64(self.value | other)
-
-
-def _coerce(self, other):
-    try:
-        return self, self.__class__(other)
-    except TypeError:
-        return NotImplemented
-
-
-c_uint64.__or__ = _or
-c_uint64.__coerce__ = _coerce
-#to do
-
+#
+# to do:
+# change arguments to enums
 
 def c_type(arg):
-    return arg._Type.value
+    return arg.__c_type__()
 
 
 def v4l2_fourcc(a, b, c, d):
@@ -33,8 +19,9 @@ def v4l2_fourcc_be(a, b, c, d):
     return v4l2_fourcc(a, b, c, d) | (1 << 31)
 
 
-class V4l2_Field(Enum):
-    _Type = c_uint32
+class V4l2_Field(IntEnum):
+    def __c_type__():
+        return c_uint32
 
     def __str__(self):
         return '{0}'.format(self.value)
@@ -87,8 +74,9 @@ def v4l2_field_is_sequential(field):
     return (field == V4l2_Field.SEQ_TB or field == V4l2_Field.SEQ_BT)
 
 
-class V4l2_Buf_Type(Enum):
-    _Type = c_uint32
+class V4l2_Buf_Type(IntEnum):
+    def __c_type__():
+        return c_uint32
 
     def __str__(self):
         return '{0}'.format(self.value)
@@ -115,8 +103,9 @@ def v4l2_type_is_output(type):
             or type == V4l2_Buf_Type.META_OUTPUT)
 
 
-class V4l2_Tuner_Type(Enum):
-    _Type = c_uint32
+class V4l2_Tuner_Type(IntEnum):
+    def __c_type__():
+        return c_uint32
 
     def __str__(self):
         return '{0}'.format(self.value)
@@ -125,8 +114,9 @@ class V4l2_Tuner_Type(Enum):
     ADC = SDR
 
 
-class V4l2_Memory(Enum):
-    _Type = c_uint32
+class V4l2_Memory(IntEnum):
+    def __c_type__():
+        return c_uint32
 
     def __str__(self):
         return '{0}'.format(self.value)
@@ -139,8 +129,9 @@ class V4l2_Memory(Enum):
     ) = range(1, 5)
 
 
-class V4l2_Colorspace(Enum):
-    _Type = c_uint32
+class V4l2_Colorspace(IntEnum):
+    def __c_type__():
+        return c_uint32
 
     def __str__(self):
         return '{0}'.format(self.value)
@@ -154,8 +145,9 @@ def v4l2_map_colorspace_default(is_sdtv, is_hdtv):
             V4l2_Colorspace.SMPTE170M)[is_sdtv]
 
 
-class V4l2_Xfer_Func(Enum):
-    _Type = c_uint32
+class V4l2_Xfer_Func(IntEnum):
+    def __c_type__():
+        return c_uint32
 
     def __str__(self):
         return '{0}'.format(self.value)
@@ -173,8 +165,9 @@ def v4l2_map_xfer_func_default(colsp):
             V4l2_Xfer_Func.OPRGB)[colsp == V4l2_Colorspace.OPRGB]
 
 
-class V4l2_Ycbcr_Enc(Enum):
-    _Type = c_uint32
+class V4l2_Ycbcr_Enc(IntEnum):
+    def __c_type__():
+        return c_uint32
 
     def __str__(self):
         return '{0}'.format(self.value)
@@ -183,8 +176,9 @@ class V4l2_Ycbcr_Enc(Enum):
      SMPTE240M) = range(9)
 
 
-class V4l2_Hsv_Enc(Enum):
-    _Type = c_uint32
+class V4l2_Hsv_Enc(IntEnum):
+    def __c_type__():
+        return c_uint32
 
     def __str__(self):
         return '{0}'.format(self.value)
@@ -200,8 +194,9 @@ def v4l2_map_ycbcr_enc_default(colsp):
                                  or colsp == V4l2_Colorspace.DCI_P3]
 
 
-class V4l2_Quantization(Enum):
-    _Type = c_uint32
+class V4l2_Quantization(IntEnum):
+    def __c_type__():
+        return c_uint32
 
     def __str__(self):
         return '{0}'.format(self.value)
@@ -217,7 +212,10 @@ def v4l2_map_quantization_default(is_rgb_or_hsv, colsp, ycbcr_enc):
                                           (colsp) == V4l2_Colorspace.BT2020)]
 
 
-class V4l2_Priority(Enum):
+class V4l2_Priority(IntEnum):
+    def __c_type__():
+        return c_uint32
+
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -260,14 +258,14 @@ class V4l2_Capability(Structure):
                 ('reserved', c_uint32 * 3)]
 
 
-class V4l2_Mode(Enum):
+class V4l2_Mode(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     HIGHQUALITY = 0 << 1
 
 
-class V4l2_Cap(Enum):
+class V4l2_Cap(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -288,8 +286,9 @@ class V4l2_Fmt(Structure):
                 ('colorspace', c_type(V4l2_Colorspace)), ('priv', c_uint32)]
 
 
-class V4l2_Fmt_Flag(Enum):
-    _Type = c_uint32
+class V4l2_Fmt_Flag(IntEnum):
+    def __c_type__():
+        return c_uint32
 
     def __str__(self):
         return '{0}'.format(self.value)
@@ -311,7 +310,7 @@ class V4l2_Pix_Format(Structure):
     ]
 
 
-class V4l2_Pix_Fmt(Enum):
+class V4l2_Pix_Fmt(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -507,7 +506,7 @@ class V4l2_Pix_Fmt(Enum):
     FLAG_PREMUL_ALPHA = 0x00000001
 
 
-class V4l2_Sdr_Fmt(Enum):
+class V4l2_Sdr_Fmt(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -521,7 +520,7 @@ class V4l2_Sdr_Fmt(Enum):
     PCU20BE = v4l2_fourcc('P', 'C', '2', '0')
 
 
-class V4l2_Tch_Fmt(Enum):
+class V4l2_Tch_Fmt(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -531,7 +530,7 @@ class V4l2_Tch_Fmt(Enum):
     TU08 = v4l2_fourcc('T', 'U', '0', '8')
 
 
-class V4l2_Meta_Fmt(Enum):
+class V4l2_Meta_Fmt(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -549,7 +548,7 @@ class V4l2_Fmtdesc(Structure):
                 ('reserved', c_uint32 * 3)]
 
 
-class V4l2_Frmsizetypes(Enum):
+class V4l2_Frmsizetypes(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -575,7 +574,7 @@ class V4l2_Frmsizeenum(Structure):
                 ('type', c_uint32), ('_u', _u), ('reserved', c_uint32 * 2)]
 
 
-class V4l2_Frmivaltypes(Enum):
+class V4l2_Frmivaltypes(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -608,21 +607,21 @@ class v4l2_Timecode(Structure):
                 ('userbits', c_uint8 * 4)]
 
 
-class V4l2_Tc_Type(Enum):
+class V4l2_Tc_Type(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     (T24FPS, T25FPS, T30FPS, T50FPS, T60FPS) = range(1, 6)
 
 
-class V4l2_Tc_Flag(Enum):
+class V4l2_Tc_Flag(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     (DROPFRAME, COLORFRAME) = [1 << x for x in range(2)]
 
 
-class V4l2_Tc_Userbits(Enum):
+class V4l2_Tc_Userbits(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -631,7 +630,7 @@ class V4l2_Tc_Userbits(Enum):
     T8BITCHARS = 0x0008
 
 
-class V4l2_Jpeg_Marker(Enum):
+class V4l2_Jpeg_Marker(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -650,7 +649,7 @@ class V4l2_Requestbuffers(Structure):
                 ('reserved', c_uint32)]
 
 
-class V4l2_Buf_Cap_Supports(Enum):
+class V4l2_Buf_Cap_Supports(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -690,7 +689,7 @@ class V4l2_Buffer(Structure):
                 ('reserved2', c_uint32), ('_v', _v)]
 
 
-class V4l2_Buf_Flag(Enum):
+class V4l2_Buf_Flag(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -717,7 +716,7 @@ class V4l2_Framebuffer(Structure):
                 ('base', c_void_p), ('fmt', V4l2_Fmt)]
 
 
-class V4l2_Fbuf_Cap(Enum):
+class V4l2_Fbuf_Cap(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -726,7 +725,7 @@ class V4l2_Fbuf_Cap(Enum):
      SRC_CHROMAKEY) = [1 << x for x in range(8)]
 
 
-class V4l2_Fbuf_Flag(Enum):
+class V4l2_Fbuf_Flag(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -781,14 +780,16 @@ class V4l2_Selection(Structure):
 V4l2_Std_Id = c_uint64
 
 
-class V4l2_Std(Enum):
+class V4l2_Std(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     (PAL_B, PAL_B1, PAL_G, PAL_H, PAL_I, PAL_D, PAL_D1, PAL_K, PAL_M, PAL_N,
      PAL_Nc, PAL_60, NTSC_M, NTSC_M_JP, NTSC_443, NTSC_M_KR, SECAM_B, SECAM_D,
      SECAM_G, SECAM_H, SECAM_K, SECAM_K1, SECAM_L, SECAM_LC, ATSC_8_VSB,
-     ATSC_16_VSB) = [V4l2_Std_Id(1 << x) for x in range(26)]
+     ATSC_16_VSB) = [(1 << x) for x in range(26)]
+
+    #  ATSC_16_VSB) = [V4l2_Std_Id(1 << x) for x in range(26)]
 
     NTSC = (NTSC_M | NTSC_M_JP | NTSC_M_KR)
     SECAM_DK = (SECAM_D | SECAM_K | SECAM_K1)
@@ -832,7 +833,7 @@ class V4l2_Bt_Timings(Structure):
                 ('hdmi_vic', c_uint8), ('reserved', c_uint8 * 46)]
 
 
-class V4l2_Dv(Enum):
+class V4l2_Dv(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -841,14 +842,14 @@ class V4l2_Dv(Enum):
     INTERLACED = 1
 
 
-class V4l2_Dv_Bt_Std(Enum):
+class V4l2_Dv_Bt_Std(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     (CEA861, DMT, CVT, GTF, SDI) = [1 << x for x in range(5)]
 
 
-class V4l2_Dv_Fl(Enum):
+class V4l2_Dv_Fl(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -879,7 +880,7 @@ class V4l2_Dv_Timings(Structure):
     _fields_ = [('bt', V4l2_Bt_Timings), ('reserved', c_uint32 * 32)]
 
 
-class V4l2_Dv_Bt(Enum):
+class V4l2_Dv_Bt(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -907,7 +908,7 @@ class V4l2_Bt_Timings_Cap(Structure):
     ]
 
 
-class V4l2_Dv_Bt_Cap(Enum):
+class V4l2_Dv_Bt_Cap(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -934,14 +935,14 @@ class V4l2_Input(Structure):
                 ('capabilities', c_uint32), ('reserved', c_uint32 * 3)]
 
 
-class V4l2_Input_Type(Enum):
+class V4l2_Input_Type(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     (TUNER, CAMERA, TOUCH) = range(3)
 
 
-class V4l2_In_St(Enum):
+class V4l2_In_St(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -953,15 +954,12 @@ class V4l2_In_St(Enum):
     (MACROVISION, NO_ACCESS, VTR) = [1 << x for x in range(24, 27)]
 
 
-class V4l2_In_Cap(Enum):
+class V4l2_In_Cap(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
-
-#define V4L2_IN_CAP_DV_TIMINGS		0x00000002
-#define V4L2_IN_CAP_CUSTOM_TIMINGS	V4L2_IN_CAP_DV_TIMINGS
-#define V4L2_IN_CAP_STD			0x00000004
-#define V4L2_IN_CAP_NATIVE_SIZE		0x00000008
+    (DV_TIMINGS, STD, NATIVE_SIZE) = [1 << x for x in range(1, 4)]
+    CUSTOM_TIMINGS = DV_TIMINGS
 
 
 class V4l2_Output(Structure):
@@ -971,25 +969,19 @@ class V4l2_Output(Structure):
                 ('capabilities', c_uint32), ('reserved', c_uint32 * 3)]
 
 
-class V4l2_Output_Type(Enum):
+class V4l2_Output_Type(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
-
-#define V4L2_OUTPUT_TYPE_MODULATOR		1
-#define V4L2_OUTPUT_TYPE_ANALOG			2
-#define V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY	3
+    (MODULATOR, ANALOG, ANALOGVGAOVERLAY) = range(1, 4)
 
 
-class V4l2_Out_Cap(Enum):
+class V4l2_Out_Cap(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
-
-#define V4L2_OUT_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
-#define V4L2_OUT_CAP_CUSTOM_TIMINGS	V4L2_OUT_CAP_DV_TIMINGS /* For compatibility */
-#define V4L2_OUT_CAP_STD		0x00000004 /* Supports S_STD */
-#define V4L2_OUT_CAP_NATIVE_SIZE	0x00000008 /* Supports setting native size */
+    (DV_TIMINGS, STD, NATIVE_SIZE) = [1 << x for x in range(1, 4)]
+    CUSTOM_TIMINGS = DV_TIMINGS
 
 
 class V4l2_Control(Structure):
@@ -1020,3 +1012,235 @@ class V4l2_Ext_Controls(Structure):
     _fields_ = [('_u', _u), ('count', c_uint32), ('error_idx', c_uint32),
                 ('request_fd', c_uint32), ('reserved', c_uint32),
                 ('controls', POINTER(V4l2_Ext_Control))]
+
+
+def v4l2_ctrl_id2which(id):
+    c: c_ulong = 0x0fff0000
+    return id & c
+
+
+def v4l2_ctrl_driver_priv(id):
+    return (((id) & 0xffff) >= 0x1000)
+
+
+class V4l2_Ctrl(IntEnum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    ID_MASK = 0x0fffffff
+    MAX_DIMS = 4
+    WHICH_CUR_VAL = 0
+    WHICH_DEF_VAL = 0x0f000000
+    WHICH_REQUEST_VAL = 0x0f010000
+
+
+class V4l2_Ctrl_Type(IntEnum):
+    def __c_type__():
+        return c_uint32
+
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (INTEGER, BOOLEAN, MENU, BUTTON, INTEGER64, CTRL_CLASS, STRING,
+     BITMASK) = range(1, 9)
+    COMPOUND_TYPES = 0x0100
+    (U8, U16, U32) = [(1 << 8) + x for x in range(3)]
+    AREA = 0x0106
+
+
+class V4l2_Queryctrl(Structure):
+    _fields_ = [('id', c_uint32), ('type', c_type(V4l2_Ctrl_Type)),
+                ('name', c_uint8 * 32), ('minimum', c_int32),
+                ('maximum', c_int32), ('step', c_int32),
+                ('default_value', c_int32), ('flags', c_uint32),
+                ('reserved', c_uint32 * 2)]
+
+
+class V4l2_Query_Ext_Ctrl(Structure):
+    _fields_ = [('id', c_uint32), ('type', c_uint32), ('name', c_char * 32),
+                ('minimum', c_int64), ('maximum', c_int64), ('step', c_uint64),
+                ('default_value', c_int64), ('flags', c_uint32),
+                ('elem_size', c_uint32), ('elems', c_uint32),
+                ('nr_of_dims', c_uint32),
+                ('dims', c_uint32 * int(V4l2_Ctrl.MAX_DIMS)),
+                ('reserved', c_uint32 * 32)]
+
+
+class V4l2_Querymenu(Structure):
+    _pack_ = True
+
+    class _u(Union):
+        _fields_ = [('name', c_uint8 * 32), ('value', c_int64)]
+
+    _fields_ = [('id', c_uint32), ('index', c_uint32), ('_u', _u),
+                ('reserved', c_uint32)]
+
+
+class V4l2_Ctrl_Flag(IntFlag):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (DISABLED, GRABBED, READ_ONLY, UPDATE, INACTIVE, SLIDER, WRITE_ONLY,
+     VOLATILE, HAS_PAYLOAD, EXECUTE_ON_WRITE,
+     MODIFY_LAYOUT) = [1 << x for x in range(11)]
+
+    NEXT_COMPOUND = 0x40000000
+    NEXT_CTRL = 0x80000000
+
+
+#define V4L2_CID_MAX_CTRLS		1024
+
+#define V4L2_CID_PRIVATE_BASE		0x08000000
+
+
+class V4l2_Tuner(Structure):
+    _fields_ = [('index', c_uint32), ('name', c_uint8 * 32),
+                ('type', c_type(V4l2_Tuner_Type)), ('capability', c_uint32),
+                ('rangelow', c_uint32), ('rangehigh', c_uint32),
+                ('rxsubchans', c_uint32), ('audmode', c_uint32),
+                ('signal', c_int32), ('afc', c_int32),
+                ('reserved', c_uint32 * 4)]
+
+
+class V4l2_Modulator(Structure):
+    _fields_ = [('index', c_uint32), ('name', c_uint8),
+                ('capability', c_uint32), ('rangelow', c_uint32),
+                ('rangehigh', c_uint32), ('txsubchans', c_uint32),
+                ('type', c_type(V4l2_Tuner_Type)), ('reserved', c_uint32 * 3)]
+
+
+class V4l2_Tuner_Cap(IntFlag):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (LOW, NORM, HWSEEK_BOUNDED, HWSEEK_WRAP, STEREO, LANG2, LANG1, RDS,
+     RDS_BLOCK_IO, RDS_CONTROLS, FREQ_BANDS, HWSEEK_PROG_LIM,
+     T1HZ) = [1 << x for x in range(13)]
+    SAP = (1 << 5)
+
+
+class V4l2_Tuner_Sub(IntFlag):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (MONO, STEREO, LANG2, LANG1, RDS) = [1 << x for x in range(5)]
+    SAP = (1 << 2)
+
+
+class V4l2_Tuner_Mode(IntFlag):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    MONO = 0x0000
+    STEREO = 0x0001
+    LANG2 = 0x0002
+    SAP = 0x0002
+    LANG1 = 0x0003
+    LANG1_LANG2 = 0x0004
+
+
+class V4l2_Frecuency(Structure):
+    _fields_ = [
+        ('tuner', c_uint32),
+        ('type', c_type(V4l2_Tuner_Type)),
+        ('frecuency', c_uint32),
+        ('reserved', c_uint32 * 8),
+    ]
+
+
+class V4l2_Band_Modulation(IntFlag):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (VSB, FM, AM) = [1 << x for x in range(3)]
+
+
+class VIDIOC(IntEnum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    QUERYCAP = IOR('V', 0, V4l2_Capability)
+    ENUM_FMT = IOWR('V', 2, V4l2_Fmtdesc)
+    # G_FMT = IOWR('V',  4, V4l2_Format)
+    # S_FMT= IOWR('V',  5, V4l2_Format)
+    REQBUFS = IOWR('V', 8, V4l2_Requestbuffers)
+    QUERYBUF = IOWR('V', 9, V4l2_Buffer)
+    G_FBUF = IOR('V', 10, V4l2_Framebuffer)
+    S_FBUF = IOW('V', 11, V4l2_Framebuffer)
+    OVERLAY = IOW('V', 14, c_int)
+    QBUF = IOWR('V', 15, V4l2_Buffer)
+    EXPBUF = IOWR('V', 16, V4l2_Exportbuffer)
+    DQBUF = IOWR('V', 17, V4l2_Buffer)
+    STREAMON = IOW('V', 18, c_int)
+    STREAMOFF = IOW('V', 19, c_int)
+    # G_PARM = IOWR('V', 21, V4l2_Streamparm)
+    # S_PARM = IOWR('V', 22, V4l2_Streamparm)
+    # G_STD = IOR('V', 23, v4l2_Std_Id)
+    # S_STD = IOW('V', 24, v4l2_Std_Id)
+    ENUMSTD = IOWR('V', 25, V4l2_Standard)
+    ENUMINPUT = IOWR('V', 26, V4l2_Input)
+    G_CTRL = IOWR('V', 27, V4l2_Control)
+    S_CTRL = IOWR('V', 28, V4l2_Control)
+    # G_TUNER = IOWR('V', 29, V4l2_Tuner)
+    # S_TUNER = IOW('V', 30, V4l2_Tuner)
+    # G_AUDIO = IOR('V', 33, V4l2_Audio)
+    # S_AUDIO = IOW('V', 34, V4l2_Audio)
+    # QUERYCTRL = IOWR('V', 36, V4l2_Queryctrl)
+    # QUERYMENU = IOWR('V', 37, V4l2_Querymenu)
+    G_INPUT = IOR('V', 38, c_int)
+    S_INPUT = IOWR('V', 39, c_int)
+    # G_EDID = IOWR('V', 40, V4l2_Edid)
+    # S_EDID = IOWR('V', 41, V4l2_Edid)
+    G_OUTPUT = IOR('V', 46, c_int)
+    S_OUTPUT = IOWR('V', 47, c_int)
+    # ENUMOUTPUT = IOWR('V', 48, V4l2_Output)
+    # G_AUDOUT = IOR('V', 49, V4l2_Audioout)
+    # S_AUDOUT = IOW('V', 50, V4l2_Audioout)
+    # G_MODULATOR = IOWR('V', 54, V4l2_Modulator)
+    # S_MODULATOR = IOW('V', 55, V4l2_Modulator)
+    # G_FREQUENCY = IOWR('V', 56, V4l2_Frequency)
+    # S_FREQUENCY = IOW('V', 57, V4l2_Frequency)
+    CROPCAP = IOWR('V', 58, V4l2_Cropcap)
+    G_CROP = IOWR('V', 59, V4l2_Crop)
+    S_CROP = IOW('V', 60, V4l2_Crop)
+    G_JPEGCOMP = IOR('V', 61, V4l2_Jpegcompression)
+    S_JPEGCOMP = IOW('V', 62, V4l2_Jpegcompression)
+    QUERYSTD = IOR('V', 63, V4l2_Std_Id)
+    # TRY_FMT = IOWR('V', 64, V4l2_Format)
+    # ENUMAUDIO = IOWR('V', 65, V4l2_Audio)
+    # ENUMAUDOUT = IOWR('V', 66, V4l2_Audioout)
+    G_PRIORITY = IOR('V', 67, c_type(V4l2_Priority))
+    S_PRIORITY = IOW('V', 68, c_type(V4l2_Priority))
+    # G_SLICED_VBI_CAP = IOWR('V', 69, V4l2_Sliced_Vbi_Cap)
+    LOG_STATUS = IO('V', 70)
+    G_EXT_CTRLS = IOWR('V', 71, V4l2_Ext_Controls)
+    S_EXT_CTRLS = IOWR('V', 72, V4l2_Ext_Controls)
+    TRY_EXT_CTRLS = IOWR('V', 73, V4l2_Ext_Controls)
+    ENUM_FRAMESIZES = IOWR('V', 74, V4l2_Frmsizeenum)
+    ENUM_FRAMEINTERVALS = IOWR('V', 75, V4l2_Frmivalenum)
+    # G_ENC_INDEX = IOR('V', 76, V4l2_Enc_Idx)
+    # ENCODER_CMD = IOWR('V', 77, V4l2_Encoder_Cmd)
+    # TRY_ENCODER_CMD = IOWR('V', 78, V4l2_Encoder_Cmd)
+    # S_HW_FREQ_SEEK = IOW('V', 82, V4l2_Hw_freq_seek)
+    S_DV_TIMINGS = IOWR('V', 87, V4l2_Dv_Timings)
+    G_DV_TIMINGS = IOWR('V', 88, V4l2_Dv_Timings)
+    # DQEVENT = IOR('V', 89, V4l2_Event)
+    # SUBSCRIBE_EVENT = IOW('V', 90, V4l2_event_subscription)
+    # UNSUBSCRIBE_EVENT = IOW('V', 91, V4l2_event_subscription)
+    # CREATE_BUFS = IOWR('V', 92, V4l2_Create_Buffers)
+    PREPARE_BUF = IOWR('V', 93, V4l2_Buffer)
+    G_SELECTION = IOWR('V', 94, V4l2_Selection)
+    S_SELECTION = IOWR('V', 95, V4l2_Selection)
+    # DECODER_CMD = IOWR('V', 96, V4l2_Decoder_Cmd)
+    # TRY_DECODER_CMD = IOWR('V', 97, V4l2_Decoder_Cmd)
+    ENUM_DV_TIMINGS = IOWR('V', 98, V4l2_Enum_Dv_Timings)
+    QUERY_DV_TIMINGS = IOR('V', 99, V4l2_Dv_Timings)
+    DV_TIMINGS_CAP = IOWR('V', 100, V4l2_Dv_Timings_Cap)
+    # ENUM_FREQ_BANDS = IOWR('V', 101, V4l2_Frequency_Band)
+
+
+class BASE_VIDIOC(IntEnum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    PRIVATE = 192
