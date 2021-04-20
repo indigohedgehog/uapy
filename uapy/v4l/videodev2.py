@@ -1,11 +1,17 @@
 from ctypes import *
-from enum import IntEnum, Enum, IntFlag
+from enum import Enum
 from util.ioctl import *
 from util.ctypes_tools import *
 
-#
-# to do:
-# change arguments to enums
+class Video_Max(Enum):
+    def __c_type__():
+        return c_uint32
+
+    def __str__(self):
+        return '{0}'.format(self.value)
+    
+    FRAME = 32
+    PLANES = 8
 
 def c_type(arg):
     return arg.__c_type__()
@@ -19,7 +25,7 @@ def v4l2_fourcc_be(a, b, c, d):
     return v4l2_fourcc(a, b, c, d) | (1 << 31)
 
 
-class V4l2_Field(IntEnum):
+class V4l2_Field(Enum):
     def __c_type__():
         return c_uint32
 
@@ -74,7 +80,7 @@ def v4l2_field_is_sequential(field):
     return (field == V4l2_Field.SEQ_TB or field == V4l2_Field.SEQ_BT)
 
 
-class V4l2_Buf_Type(IntEnum):
+class V4l2_Buf_Type(Enum):
     def __c_type__():
         return c_uint32
 
@@ -103,7 +109,7 @@ def v4l2_type_is_output(type):
             or type == V4l2_Buf_Type.META_OUTPUT)
 
 
-class V4l2_Tuner_Type(IntEnum):
+class V4l2_Tuner_Type(Enum):
     def __c_type__():
         return c_uint32
 
@@ -114,7 +120,7 @@ class V4l2_Tuner_Type(IntEnum):
     ADC = SDR
 
 
-class V4l2_Memory(IntEnum):
+class V4l2_Memory(Enum):
     def __c_type__():
         return c_uint32
 
@@ -129,7 +135,7 @@ class V4l2_Memory(IntEnum):
     ) = range(1, 5)
 
 
-class V4l2_Colorspace(IntEnum):
+class V4l2_Colorspace(Enum):
     def __c_type__():
         return c_uint32
 
@@ -145,7 +151,7 @@ def v4l2_map_colorspace_default(is_sdtv, is_hdtv):
             V4l2_Colorspace.SMPTE170M)[is_sdtv]
 
 
-class V4l2_Xfer_Func(IntEnum):
+class V4l2_Xfer_Func(Enum):
     def __c_type__():
         return c_uint32
 
@@ -165,7 +171,7 @@ def v4l2_map_xfer_func_default(colsp):
             V4l2_Xfer_Func.OPRGB)[colsp == V4l2_Colorspace.OPRGB]
 
 
-class V4l2_Ycbcr_Enc(IntEnum):
+class V4l2_Ycbcr_Enc(Enum):
     def __c_type__():
         return c_uint32
 
@@ -176,7 +182,7 @@ class V4l2_Ycbcr_Enc(IntEnum):
      SMPTE240M) = range(9)
 
 
-class V4l2_Hsv_Enc(IntEnum):
+class V4l2_Hsv_Enc(Enum):
     def __c_type__():
         return c_uint32
 
@@ -194,7 +200,7 @@ def v4l2_map_ycbcr_enc_default(colsp):
                                  or colsp == V4l2_Colorspace.DCI_P3]
 
 
-class V4l2_Quantization(IntEnum):
+class V4l2_Quantization(Enum):
     def __c_type__():
         return c_uint32
 
@@ -212,7 +218,7 @@ def v4l2_map_quantization_default(is_rgb_or_hsv, colsp, ycbcr_enc):
                                           (colsp) == V4l2_Colorspace.BT2020)]
 
 
-class V4l2_Priority(IntEnum):
+class V4l2_Priority(Enum):
     def __c_type__():
         return c_uint32
 
@@ -224,7 +230,7 @@ class V4l2_Priority(IntEnum):
         BACKGROUND,
         INTERACTIVE,
         RECORD,
-    ) = list(range(0, 4))
+    ) = range(0, 4)
     DEFAULT = INTERACTIVE
 
 
@@ -258,14 +264,14 @@ class V4l2_Capability(Structure):
                 ('reserved', c_uint32 * 3)]
 
 
-class V4l2_Mode(IntEnum):
+class V4l2_Mode(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     HIGHQUALITY = 0 << 1
 
 
-class V4l2_Cap(IntEnum):
+class V4l2_Cap(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -286,7 +292,7 @@ class V4l2_Fmt(Structure):
                 ('colorspace', c_type(V4l2_Colorspace)), ('priv', c_uint32)]
 
 
-class V4l2_Fmt_Flag(IntEnum):
+class V4l2_Fmt_Flag(Enum):
     def __c_type__():
         return c_uint32
 
@@ -310,7 +316,10 @@ class V4l2_Pix_Format(Structure):
     ]
 
 
-class V4l2_Pix_Fmt(IntEnum):
+class V4l2_Pix_Fmt(Enum):
+    def __c_type__():
+        return c_uint32
+
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -506,7 +515,7 @@ class V4l2_Pix_Fmt(IntEnum):
     FLAG_PREMUL_ALPHA = 0x00000001
 
 
-class V4l2_Sdr_Fmt(IntEnum):
+class V4l2_Sdr_Fmt(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -520,7 +529,7 @@ class V4l2_Sdr_Fmt(IntEnum):
     PCU20BE = v4l2_fourcc('P', 'C', '2', '0')
 
 
-class V4l2_Tch_Fmt(IntEnum):
+class V4l2_Tch_Fmt(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -530,7 +539,7 @@ class V4l2_Tch_Fmt(IntEnum):
     TU08 = v4l2_fourcc('T', 'U', '0', '8')
 
 
-class V4l2_Meta_Fmt(IntEnum):
+class V4l2_Meta_Fmt(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -548,7 +557,7 @@ class V4l2_Fmtdesc(Structure):
                 ('reserved', c_uint32 * 3)]
 
 
-class V4l2_Frmsizetypes(IntEnum):
+class V4l2_Frmsizetypes(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -574,7 +583,7 @@ class V4l2_Frmsizeenum(Structure):
                 ('type', c_uint32), ('_u', _u), ('reserved', c_uint32 * 2)]
 
 
-class V4l2_Frmivaltypes(IntEnum):
+class V4l2_Frmivaltypes(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -607,21 +616,21 @@ class v4l2_Timecode(Structure):
                 ('userbits', c_uint8 * 4)]
 
 
-class V4l2_Tc_Type(IntEnum):
+class V4l2_Tc_Type(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     (T24FPS, T25FPS, T30FPS, T50FPS, T60FPS) = range(1, 6)
 
 
-class V4l2_Tc_Flag(IntEnum):
+class V4l2_Tc_Flag(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     (DROPFRAME, COLORFRAME) = [1 << x for x in range(2)]
 
 
-class V4l2_Tc_Userbits(IntEnum):
+class V4l2_Tc_Userbits(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -630,7 +639,7 @@ class V4l2_Tc_Userbits(IntEnum):
     T8BITCHARS = 0x0008
 
 
-class V4l2_Jpeg_Marker(IntEnum):
+class V4l2_Jpeg_Marker(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -649,7 +658,7 @@ class V4l2_Requestbuffers(Structure):
                 ('reserved', c_uint32)]
 
 
-class V4l2_Buf_Cap_Supports(IntEnum):
+class V4l2_Buf_Cap_Supports(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -689,7 +698,7 @@ class V4l2_Buffer(Structure):
                 ('reserved2', c_uint32), ('_v', _v)]
 
 
-class V4l2_Buf_Flag(IntEnum):
+class V4l2_Buf_Flag(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -716,7 +725,7 @@ class V4l2_Framebuffer(Structure):
                 ('base', c_void_p), ('fmt', V4l2_Fmt)]
 
 
-class V4l2_Fbuf_Cap(IntEnum):
+class V4l2_Fbuf_Cap(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -725,7 +734,7 @@ class V4l2_Fbuf_Cap(IntEnum):
      SRC_CHROMAKEY) = [1 << x for x in range(8)]
 
 
-class V4l2_Fbuf_Flag(IntEnum):
+class V4l2_Fbuf_Flag(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -780,7 +789,7 @@ class V4l2_Selection(Structure):
 V4l2_Std_Id = c_uint64
 
 
-class V4l2_Std(IntEnum):
+class V4l2_Std(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -833,23 +842,21 @@ class V4l2_Bt_Timings(Structure):
                 ('hdmi_vic', c_uint8), ('reserved', c_uint8 * 46)]
 
 
-class V4l2_Dv(IntEnum):
+class V4l2_Dv(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     (VSYNC_POS_POL, HSYNC_POS_POL) = [1 << x for x in range(2)]
-    PROGRESSIVE = 0
-    INTERLACED = 1
 
 
-class V4l2_Dv_Bt_Std(IntEnum):
+class V4l2_Dv_Bt_Std(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     (CEA861, DMT, CVT, GTF, SDI) = [1 << x for x in range(5)]
 
 
-class V4l2_Dv_Fl(IntEnum):
+class V4l2_Dv_Fl(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -880,7 +887,7 @@ class V4l2_Dv_Timings(Structure):
     _fields_ = [('bt', V4l2_Bt_Timings), ('reserved', c_uint32 * 32)]
 
 
-class V4l2_Dv_Bt(IntEnum):
+class V4l2_Dv_Bt(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -908,7 +915,7 @@ class V4l2_Bt_Timings_Cap(Structure):
     ]
 
 
-class V4l2_Dv_Bt_Cap(IntEnum):
+class V4l2_Dv_Bt_Cap(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -935,14 +942,14 @@ class V4l2_Input(Structure):
                 ('capabilities', c_uint32), ('reserved', c_uint32 * 3)]
 
 
-class V4l2_Input_Type(IntEnum):
+class V4l2_Input_Type(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     (TUNER, CAMERA, TOUCH) = range(3)
 
 
-class V4l2_In_St(IntEnum):
+class V4l2_In_St(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -954,7 +961,7 @@ class V4l2_In_St(IntEnum):
     (MACROVISION, NO_ACCESS, VTR) = [1 << x for x in range(24, 27)]
 
 
-class V4l2_In_Cap(IntEnum):
+class V4l2_In_Cap(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -969,14 +976,14 @@ class V4l2_Output(Structure):
                 ('capabilities', c_uint32), ('reserved', c_uint32 * 3)]
 
 
-class V4l2_Output_Type(IntEnum):
+class V4l2_Output_Type(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     (MODULATOR, ANALOG, ANALOGVGAOVERLAY) = range(1, 4)
 
 
-class V4l2_Out_Cap(IntEnum):
+class V4l2_Out_Cap(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -1023,7 +1030,7 @@ def v4l2_ctrl_driver_priv(id):
     return (((id) & 0xffff) >= 0x1000)
 
 
-class V4l2_Ctrl(IntEnum):
+class V4l2_Ctrl(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -1034,7 +1041,7 @@ class V4l2_Ctrl(IntEnum):
     WHICH_REQUEST_VAL = 0x0f010000
 
 
-class V4l2_Ctrl_Type(IntEnum):
+class V4l2_Ctrl_Type(Enum):
     def __c_type__():
         return c_uint32
 
@@ -1062,7 +1069,7 @@ class V4l2_Query_Ext_Ctrl(Structure):
                 ('default_value', c_int64), ('flags', c_uint32),
                 ('elem_size', c_uint32), ('elems', c_uint32),
                 ('nr_of_dims', c_uint32),
-                ('dims', c_uint32 * int(V4l2_Ctrl.MAX_DIMS)),
+                ('dims', c_uint32 * int(str(V4l2_Ctrl.MAX_DIMS))),
                 ('reserved', c_uint32 * 32)]
 
 
@@ -1076,7 +1083,7 @@ class V4l2_Querymenu(Structure):
                 ('reserved', c_uint32)]
 
 
-class V4l2_Ctrl_Flag(IntFlag):
+class V4l2_Ctrl_Flag(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -1088,9 +1095,12 @@ class V4l2_Ctrl_Flag(IntFlag):
     NEXT_CTRL = 0x80000000
 
 
-#define V4L2_CID_MAX_CTRLS		1024
+class V4l2_Cid(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
 
-#define V4L2_CID_PRIVATE_BASE		0x08000000
+    MAX_CTRLS = 0x400
+    PRIVATE_BASE = 0x08000000
 
 
 class V4l2_Tuner(Structure):
@@ -1109,7 +1119,7 @@ class V4l2_Modulator(Structure):
                 ('type', c_type(V4l2_Tuner_Type)), ('reserved', c_uint32 * 3)]
 
 
-class V4l2_Tuner_Cap(IntFlag):
+class V4l2_Tuner_Cap(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -1119,7 +1129,7 @@ class V4l2_Tuner_Cap(IntFlag):
     SAP = (1 << 5)
 
 
-class V4l2_Tuner_Sub(IntFlag):
+class V4l2_Tuner_Sub(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -1127,7 +1137,7 @@ class V4l2_Tuner_Sub(IntFlag):
     SAP = (1 << 2)
 
 
-class V4l2_Tuner_Mode(IntFlag):
+class V4l2_Tuner_Mode(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
@@ -1148,20 +1158,319 @@ class V4l2_Frecuency(Structure):
     ]
 
 
-class V4l2_Band_Modulation(IntFlag):
+class V4l2_Band_Modulation(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     (VSB, FM, AM) = [1 << x for x in range(3)]
 
 
-class VIDIOC(IntEnum):
+class V4l2_Frecuency_Band(Structure):
+    _fields_ = [
+        ('tuner', c_uint32),
+        ('type', c_type(V4l2_Tuner_Type)),
+        ('index', c_uint32),
+        ('capability', c_uint32),
+        ('rangelow', c_uint32),
+        ('rangehigh', c_uint32),
+        ('modulation', c_uint32),
+        ('reserved', c_uint32 * 9),
+    ]
+
+
+class V4l2_Hw_Freq_Seek(Structure):
+    _fields_ = [('tuner', c_uint32), ('type', c_type(V4l2_Tuner_Type)),
+                ('seek_upward', c_uint32), ('wrap_around', c_uint32),
+                ('spacing', c_uint32), ('rangelow', c_uint32),
+                ('rangehigh', c_uint32), ('reserved', c_uint32 * 5)]
+
+
+class V4l2_Rds_Data(Structure):
+    _pack_ = True
+    _fields_ = [('lsb', c_uint8), ('msb', c_uint8), ('block', c_uint8)]
+
+
+class V4l2_Rds_Block(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    MSK = 0x7
+    (A, B, C, D, C_ALT) = range(5)
+    INVALID = 7
+    (CORRECTED, ERROR) = [1 << x for x in range(6, 8)]
+
+
+class V4l2_Audio(Structure):
+    _fields_ = [('index', c_uint32), ('name', c_uint8),
+                ('capability', c_uint32), ('mode', c_uint32),
+                ('reserved', c_uint32 * 2)]
+
+
+#define V4L2_AUDCAP_STEREO		0x00001
+#define V4L2_AUDCAP_AVL			0x00002
+#define V4L2_AUDMODE_AVL		0x00001
+
+
+class V4l2_Audioout(Structure):
+    _fields_ = [('index', c_uint32), ('name', c_uint8),
+                ('capability', c_uint32), ('mode', c_uint32),
+                ('reserved', c_uint32 * 2)]
+
+
+class V4l2_Enc_Idx_Frame(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (I, P, B) = range(3)
+    MASK = (0xf)
+
+
+class V4l2_Enc_Idx_Entry(Structure):
+    _fields_ = [('offset', c_uint64), ('pts', c_uint64), ('length', c_uint32),
+                ('flags', c_uint32), ('reserved', c_uint32 * 2)]
+
+
+class V4l2_Enc_Idx(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    ENTRIES = 64
+
+
+class V4l2_Enc_Idx(Structure):
+    _fields_ = [('entries', c_uint32), ('entries_cap', c_uint32),
+                ('reserved', c_uint32 * 4),
+                ('entry', V4l2_Enc_Idx_Entry * int(str(V4l2_Enc_Idx.ENTRIES)))]
+
+
+class V4l2_Enc_Cmd(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (START, STOP, PAUSE, RESUME) = range(4)
+    STOP_AT_GOP_END = (1 << 0)
+
+
+class V4l2_Encoder_Cmd(Structure):
+    class _u(Union):
+        class _s(Structure):
+            _fields_ = [
+                ('data', c_uint32 * 8),
+            ]
+
+        _fields_ = [
+            ('raw', _s),
+        ]
+
+    _fields_ = [('cmd', c_uint32), ('flags', c_uint32), ('_u', _u)]
+
+
+class V4l2_Dec_Cmd(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (START, STOP, PAUSE, RESUME, FLUSH) = range(5)
+
+    (START_MUTE_AUDIO, PAUSE_TO_BLACK, STOP_TO_BLACK) = [(1 << 0)] * 3
+    STOP_IMMEDIATELY = (1 << 1)
+
+
+class V4l2_Dec_Start_Fmt(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    NONE = 0
+    GOP = 1
+
+
+class V4l2_Decoder_Cmd(Structure):
+    class _u(Union):
+        class _stop(Structure):
+            _fields_ = [
+                ('pts', c_uint64),
+            ]
+
+        class _start(Structure):
+            _fields_ = [
+                ('speed', c_int32),
+                ('format', c_uint32),
+            ]
+
+        class _raw(Structure):
+            _fields_ = [
+                ('data', c_uint32 * 16),
+            ]
+
+        _fields_ = [('stop', _stop), ('start', _start), ('raw', _raw)]
+
+    _fields_ = [('cmd', c_uint32), ('flags', c_uint32), ('_u', _u)]
+
+
+class V4l2_Vbi(Enum):
+    def __c_type__():
+        return c_uint32
+
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    UNSYNC = (1 << 0)
+    INTERLACED = (1 << 1)
+    ITU_525_F1_START = (1)
+    ITU_525_F2_START = (264)
+    ITU_625_F1_START = (1)
+    ITU_625_F2_START = (314)
+
+
+class V4l2_Vbi_Format(Structure):
+    _fields_ = [('sampling_rate', c_uint32), ('offset', c_uint32),
+                ('samples_per_line', c_uint32),
+                ('sample_format', c_type(V4l2_Pix_Fmt)),
+                ('start', c_int32 * 2), ('count', c_uint32 * 2),
+                ('flags', c_type(V4l2_Vbi)), ('reserved', c_uint32 * 2)]
+
+
+class V4l2_Sliced_Vbi_Format(Structure):
+    _fields_ = [('service_set', c_uint16),
+                ('service_lines', c_uint16 * 2 * 24), ('io_size', c_uint32),
+                ('reserved', c_uint32 * 2)]
+
+
+class V4l2_Sliced(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    TELETEXT_B = 0x0001
+    VPS = 0x0400
+    CAPTION_525 = 0x1000
+    WSS_625 = 0x4000
+    VBI_525 = CAPTION_525
+    VBI_625 = (TELETEXT_B | VPS | WSS_625)
+
+
+class V4l2_Sliced_Vbi_Cap(Structure):
+    _fields_ = [('service_set', c_uint16),
+                ('service_lines', c_uint16 * 2 * 24),
+                ('type', c_type(V4l2_Buf_Type)), ('reserved', c_uint32 * 3)]
+
+
+class V4l2_Sliced_Vbi_Data(Structure):
+    _fields_ = [
+        ('id', c_uint32),
+        ('field', c_uint32),
+        ('line', c_uint32),
+        ('reserved', c_uint32),
+        ('data', c_uint8 * 48),
+    ]
+
+
+class V4l2_Mpeg_Vbi_Ivtv(Enum):
+    def __c_type__():
+        return c_uint8
+
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    TELETEXT_B = 1
+    CAPTION_525 = 4
+    WSS_625 = 5
+    VPS = 7
+
+
+class V4l2_Mpeg_Vbi_Ivtv_Magic(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    M0 = "itv0"
+    M1 = "ITV0"
+
+
+class V4l2_Mpeg_Vbi_Itv0_Line(Structure):
+    _pack_ = True
+    _fields_ = [('id', c_type(V4l2_Mpeg_Vbi_Ivtv)), ('data', c_uint8 * 42)]
+
+
+class V4l2_Mpeg_Vbi_Itv0(Structure):
+    _pack_ = True
+
+    class _s(LittleEndianStructure):
+        _fields_ = [('linemask', c_uint32)]
+
+    _fields_ = [('_s', _s * 2), ('line', V4l2_Mpeg_Vbi_Itv0_Line * 35)]
+
+
+class V4l2_Mpeg_Vbi_ITV0(Structure):
+    _pack_ = True
+    _fields_ = [('line', V4l2_Mpeg_Vbi_Itv0_Line * 35)]
+
+
+class V4l2_Mpeg_Vbi_Fmt_Ivtv(Structure):
+    _pack_ = True
+
+    class _u(Union):
+        _fields_ = [('itv0', V4l2_Mpeg_Vbi_Itv0), ('ITV0', V4l2_Mpeg_Vbi_ITV0)]
+
+    _fields_ = [('magic', c_uint8 * 4), ('_u', _u)]
+
+
+class V4l2_Plane_Pix_Format(Structure):
+    _pack_ = True
+    _fields_ = [
+        ('sizeimage', c_uint32),
+        ('bytesperline', c_uint32),
+        ('reserved', c_uint16 * 6)
+        ]
+
+class V4l2_Pix_Format_Mplane(Structure):
+    _pack_ = True
+    class _u(Union):
+        _fields_ = [
+            ('ycbcr_enc', c_uint8),
+            ('hsv_enc', c_uint8)
+        ]
+    _fields_ = [
+        ('width', c_uint32),
+        ('height', c_uint32),
+        ('pixelformat', c_uint32),
+        ('field', c_type(V4l2_Field)),
+        ('colorspace', c_type(V4l2_Colorspace)),
+        ('plane_fmt', V4l2_Plane_Pix_Format * int(str(Video_Max.PLANES))),
+        ('num_planes', c_uint32),
+        ('flags', c_uint8),
+        ('_u', _u),
+        ('quantization',c_uint8),
+        ('xfer_func', c_uint8),
+        ('reserved', c_uint8 * 7)
+
+        ]
+
+
+# class V4l2_(Structure):
+#     _pack_ = True
+#     _fields_ = [()]
+# struct v4l2_sdr_format {
+# 	__u32				pixelformat;
+# 	__u32				buffersize;
+# 	__u8				reserved[24];
+# } __attribute__ ((packed));
+
+# class V4l2_(Structure):
+#     _pack_ = True
+#     _fields_ = [()]
+# struct v4l2_meta_format {
+# 	__u32				dataformat;
+# 	__u32				buffersize;
+# } __attribute__ ((packed));
+
+
+
+
+class VIDIOC(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     QUERYCAP = IOR('V', 0, V4l2_Capability)
     ENUM_FMT = IOWR('V', 2, V4l2_Fmtdesc)
-    # G_FMT = IOWR('V',  4, V4l2_Format)
+    # G_FMT = IOWR('V', 4, V4l2_Format)
     # S_FMT= IOWR('V',  5, V4l2_Format)
     REQBUFS = IOWR('V', 8, V4l2_Requestbuffers)
     QUERYBUF = IOWR('V', 9, V4l2_Buffer)
@@ -1239,7 +1548,7 @@ class VIDIOC(IntEnum):
     # ENUM_FREQ_BANDS = IOWR('V', 101, V4l2_Frequency_Band)
 
 
-class BASE_VIDIOC(IntEnum):
+class BASE_VIDIOC(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
