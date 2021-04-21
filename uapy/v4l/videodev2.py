@@ -2,6 +2,7 @@ from ctypes import *
 from enum import Enum
 from util.ioctl import *
 from util.ctypes_tools import *
+from v4l.v4l2_common import *
 
 class Video_Max(Enum):
     def __c_type__():
@@ -9,9 +10,10 @@ class Video_Max(Enum):
 
     def __str__(self):
         return '{0}'.format(self.value)
-    
+
     FRAME = 32
     PLANES = 8
+
 
 def c_type(arg):
     return arg.__c_type__()
@@ -762,7 +764,7 @@ class V4l2_Captureparm(Structure):
                 ('readbuffers', c_uint32), ('reserved', c_uint32 * 4)]
 
 
-class V4l2_Captureparm(Structure):
+class V4l2_Outputparm(Structure):
     _fields_ = [('capability', c_uint32), ('outputmode', c_uint32),
                 ('timeperframe', V4l2_Fract), ('extendedmode', c_uint32),
                 ('writebuffers', c_uint32), ('reserved', c_uint32 * 4)]
@@ -1149,7 +1151,7 @@ class V4l2_Tuner_Mode(Enum):
     LANG1_LANG2 = 0x0004
 
 
-class V4l2_Frecuency(Structure):
+class V4l2_Frequency(Structure):
     _fields_ = [
         ('tuner', c_uint32),
         ('type', c_type(V4l2_Tuner_Type)),
@@ -1165,7 +1167,7 @@ class V4l2_Band_Modulation(Enum):
     (VSB, FM, AM) = [1 << x for x in range(3)]
 
 
-class V4l2_Frecuency_Band(Structure):
+class V4l2_Frequency_Band(Structure):
     _fields_ = [
         ('tuner', c_uint32),
         ('type', c_type(V4l2_Tuner_Type)),
@@ -1400,6 +1402,7 @@ class V4l2_Mpeg_Vbi_Itv0(Structure):
 
 class V4l2_Mpeg_Vbi_ITV0(Structure):
     _pack_ = True
+
     _fields_ = [('line', V4l2_Mpeg_Vbi_Itv0_Line * 35)]
 
 
@@ -1414,53 +1417,145 @@ class V4l2_Mpeg_Vbi_Fmt_Ivtv(Structure):
 
 class V4l2_Plane_Pix_Format(Structure):
     _pack_ = True
-    _fields_ = [
-        ('sizeimage', c_uint32),
-        ('bytesperline', c_uint32),
-        ('reserved', c_uint16 * 6)
-        ]
+
+    _fields_ = [('sizeimage', c_uint32), ('bytesperline', c_uint32),
+                ('reserved', c_uint16 * 6)]
+
 
 class V4l2_Pix_Format_Mplane(Structure):
     _pack_ = True
+
     class _u(Union):
+        _fields_ = [('ycbcr_enc', c_uint8), ('hsv_enc', c_uint8)]
+
+    _fields_ = [('width', c_uint32), ('height', c_uint32),
+                ('pixelformat', c_uint32), ('field', c_type(V4l2_Field)),
+                ('colorspace', c_type(V4l2_Colorspace)),
+                ('plane_fmt',
+                 V4l2_Plane_Pix_Format * int(str(Video_Max.PLANES))),
+                ('num_planes', c_uint32), ('flags', c_uint8), ('_u', _u),
+                ('quantization', c_uint8), ('xfer_func', c_uint8),
+                ('reserved', c_uint8 * 7)]
+
+
+class V4l2_Sdr_Format(Structure):
+    _pack_ = True
+    _fields_ = [('pixelformat', c_uint32), ('buffersize', c_uint32),
+                ('reserved', c_uint8 * 24)]
+
+
+class V4l2_Meta_Format(Structure):
+    _pack_ = True
+    _fields_ = [('dataformat', c_uint32), ('buffersize', c_uint32)]
+
+
+class V4l2_Format(Structure):
+    class _fmt(Union):
         _fields_ = [
-            ('ycbcr_enc', c_uint8),
-            ('hsv_enc', c_uint8)
+            ('pix', V4l2_Pix_Format), ('pix_mp', V4l2_Pix_Format_Mplane),
+            ('win', V4l2_Window), ('vbi', V4l2_Vbi_Format),
+            ('sliced', V4l2_Sliced_Vbi_Format), ('sdr', V4l2_Sdr_Format),
+            ('meta', V4l2_Meta_Format), ('raw_data', c_uint8 * 200)
         ]
+
+    _fields_ = [('type', c_type(V4l2_Buf_Type)), ('fmt', _fmt)]
+
+
+class V4l2_Streamparm(Structure):
+    class _parm(Union):
+        _fields_ = [('capture', V4l2_Captureparm), ('output', V4l2_Outputparm),
+                    ('raw_data', c_uint8 * 200)]
+
+    _fields_ = [('type', c_type(V4l2_Buf_Type)), ('parm', _parm)]
+
+
+class V4l2_Event(Enum):
+    def __str__(self):
+        return '{0}'.format(self.value)
+
+    (ALL, VSYNC, EOS, CTRL, FRAME_SYNC, SOURCE_CHANGE, MOTION_DET) = range(7)
+
+    PRIVATE_START = 0x08000000
+
+
+class V4l2_Event_Vsync(Structure):
+    _pack_ = True
+    _fields_ = [('field', c_type(V4l2_Field))]
+
+
+#define V4L2_EVENT_CTRL_CH_VALUE		(1 << 0)
+#define V4L2_EVENT_CTRL_CH_FLAGS		(1 << 1)
+#define V4L2_EVENT_CTRL_CH_RANGE		(1 << 2)
+
+
+class V4l2_Event_Ctrl(Structure):
+    class _u(Union):
+        _fields_ = [('value', c_int32), ('value64', c_int64)]
+
+    _fields_ = [('changes', c_uint32), ('type', c_uint32), ('_u', _u),
+                ('flags', c_uint32), ('minimum', c_int32),
+                ('maximum', c_int32), ('step', c_int32),
+                ('default_value', c_int32)]
+
+
+class V4l2_Event_Frame_Sync(Structure):
+    _fields_ = [('frame_sequence', c_uint32)]
+
+
+#define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
+
+
+class V4l2_Event_Src_Change(Structure):
+    _fields_ = [('changes', c_uint32)]
+
+
+#define V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ	(1 << 0)
+
+
+class V4l2_Event_Motion_Det(Structure):
+    _fields_ = [('flags', c_uint32), ('frame_sequence', c_uint32),
+                ('region_mask', c_uint32)]
+
+
+class V4l2_Event(Structure):
+    class timespec(Structure):
+        _fields_ = [
+            ('tv_sec', c_long),
+            ('tv_nsec', c_long)
+        ]
+    class _u(Union):
+        _fields_ = [('vsync', V4l2_Event_Vsync), ('ctrl', V4l2_Event_Ctrl),
+                    ('frame_sync', V4l2_Event_Frame_Sync),
+                    ('src_change', V4l2_Event_Src_Change),
+                    ('motion_det', V4l2_Event_Motion_Det),
+                    ('data', c_uint8 * 64)]
+
+    _fields_ = [('type', c_uint32), ('u', _u), ('pending', c_uint32),
+                ('sequence', c_uint32), ('timestamp', timespec),
+                ('id', c_uint32), ('reserved', c_uint32 * 8)]
+
+
+#define V4L2_EVENT_SUB_FL_SEND_INITIAL		(1 << 0)
+#define V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK	(1 << 1)
+
+class V4l2_Event_Subscription(Structure):
     _fields_ = [
-        ('width', c_uint32),
-        ('height', c_uint32),
-        ('pixelformat', c_uint32),
-        ('field', c_type(V4l2_Field)),
-        ('colorspace', c_type(V4l2_Colorspace)),
-        ('plane_fmt', V4l2_Plane_Pix_Format * int(str(Video_Max.PLANES))),
-        ('num_planes', c_uint32),
-        ('flags', c_uint8),
-        ('_u', _u),
-        ('quantization',c_uint8),
-        ('xfer_func', c_uint8),
-        ('reserved', c_uint8 * 7)
+        ('type', c_uint32),
+        ('id', c_uint32),
+        ('flags', c_uint32),
+        ('reserved', c_uint32 * 5),                        
+    ]
 
+
+class V4l2_Create_Buffers(Structure):
+    _fields_ = [
+        ('index', c_uint32),
+        ('count', c_uint32),
+        ('memory', c_uint32),
+        ('format', V4l2_Format),
+        ('capabilities', c_uint32),
+        ('reserved', c_uint32 * 7)         
         ]
-
-
-# class V4l2_(Structure):
-#     _pack_ = True
-#     _fields_ = [()]
-# struct v4l2_sdr_format {
-# 	__u32				pixelformat;
-# 	__u32				buffersize;
-# 	__u8				reserved[24];
-# } __attribute__ ((packed));
-
-# class V4l2_(Structure):
-#     _pack_ = True
-#     _fields_ = [()]
-# struct v4l2_meta_format {
-# 	__u32				dataformat;
-# 	__u32				buffersize;
-# } __attribute__ ((packed));
-
 
 
 
@@ -1468,84 +1563,84 @@ class VIDIOC(Enum):
     def __str__(self):
         return '{0}'.format(self.value)
 
-    QUERYCAP = IOR('V', 0, V4l2_Capability)
-    ENUM_FMT = IOWR('V', 2, V4l2_Fmtdesc)
-    # G_FMT = IOWR('V', 4, V4l2_Format)
-    # S_FMT= IOWR('V',  5, V4l2_Format)
-    REQBUFS = IOWR('V', 8, V4l2_Requestbuffers)
-    QUERYBUF = IOWR('V', 9, V4l2_Buffer)
-    G_FBUF = IOR('V', 10, V4l2_Framebuffer)
-    S_FBUF = IOW('V', 11, V4l2_Framebuffer)
-    OVERLAY = IOW('V', 14, c_int)
-    QBUF = IOWR('V', 15, V4l2_Buffer)
-    EXPBUF = IOWR('V', 16, V4l2_Exportbuffer)
-    DQBUF = IOWR('V', 17, V4l2_Buffer)
-    STREAMON = IOW('V', 18, c_int)
-    STREAMOFF = IOW('V', 19, c_int)
-    # G_PARM = IOWR('V', 21, V4l2_Streamparm)
-    # S_PARM = IOWR('V', 22, V4l2_Streamparm)
-    # G_STD = IOR('V', 23, v4l2_Std_Id)
-    # S_STD = IOW('V', 24, v4l2_Std_Id)
-    ENUMSTD = IOWR('V', 25, V4l2_Standard)
-    ENUMINPUT = IOWR('V', 26, V4l2_Input)
-    G_CTRL = IOWR('V', 27, V4l2_Control)
-    S_CTRL = IOWR('V', 28, V4l2_Control)
-    # G_TUNER = IOWR('V', 29, V4l2_Tuner)
-    # S_TUNER = IOW('V', 30, V4l2_Tuner)
-    # G_AUDIO = IOR('V', 33, V4l2_Audio)
-    # S_AUDIO = IOW('V', 34, V4l2_Audio)
-    # QUERYCTRL = IOWR('V', 36, V4l2_Queryctrl)
-    # QUERYMENU = IOWR('V', 37, V4l2_Querymenu)
-    G_INPUT = IOR('V', 38, c_int)
-    S_INPUT = IOWR('V', 39, c_int)
-    # G_EDID = IOWR('V', 40, V4l2_Edid)
-    # S_EDID = IOWR('V', 41, V4l2_Edid)
-    G_OUTPUT = IOR('V', 46, c_int)
-    S_OUTPUT = IOWR('V', 47, c_int)
-    # ENUMOUTPUT = IOWR('V', 48, V4l2_Output)
-    # G_AUDOUT = IOR('V', 49, V4l2_Audioout)
-    # S_AUDOUT = IOW('V', 50, V4l2_Audioout)
-    # G_MODULATOR = IOWR('V', 54, V4l2_Modulator)
-    # S_MODULATOR = IOW('V', 55, V4l2_Modulator)
-    # G_FREQUENCY = IOWR('V', 56, V4l2_Frequency)
-    # S_FREQUENCY = IOW('V', 57, V4l2_Frequency)
-    CROPCAP = IOWR('V', 58, V4l2_Cropcap)
-    G_CROP = IOWR('V', 59, V4l2_Crop)
-    S_CROP = IOW('V', 60, V4l2_Crop)
-    G_JPEGCOMP = IOR('V', 61, V4l2_Jpegcompression)
-    S_JPEGCOMP = IOW('V', 62, V4l2_Jpegcompression)
-    QUERYSTD = IOR('V', 63, V4l2_Std_Id)
-    # TRY_FMT = IOWR('V', 64, V4l2_Format)
-    # ENUMAUDIO = IOWR('V', 65, V4l2_Audio)
-    # ENUMAUDOUT = IOWR('V', 66, V4l2_Audioout)
-    G_PRIORITY = IOR('V', 67, c_type(V4l2_Priority))
-    S_PRIORITY = IOW('V', 68, c_type(V4l2_Priority))
-    # G_SLICED_VBI_CAP = IOWR('V', 69, V4l2_Sliced_Vbi_Cap)
-    LOG_STATUS = IO('V', 70)
-    G_EXT_CTRLS = IOWR('V', 71, V4l2_Ext_Controls)
-    S_EXT_CTRLS = IOWR('V', 72, V4l2_Ext_Controls)
-    TRY_EXT_CTRLS = IOWR('V', 73, V4l2_Ext_Controls)
-    ENUM_FRAMESIZES = IOWR('V', 74, V4l2_Frmsizeenum)
-    ENUM_FRAMEINTERVALS = IOWR('V', 75, V4l2_Frmivalenum)
-    # G_ENC_INDEX = IOR('V', 76, V4l2_Enc_Idx)
-    # ENCODER_CMD = IOWR('V', 77, V4l2_Encoder_Cmd)
-    # TRY_ENCODER_CMD = IOWR('V', 78, V4l2_Encoder_Cmd)
-    # S_HW_FREQ_SEEK = IOW('V', 82, V4l2_Hw_freq_seek)
-    S_DV_TIMINGS = IOWR('V', 87, V4l2_Dv_Timings)
-    G_DV_TIMINGS = IOWR('V', 88, V4l2_Dv_Timings)
-    # DQEVENT = IOR('V', 89, V4l2_Event)
-    # SUBSCRIBE_EVENT = IOW('V', 90, V4l2_event_subscription)
-    # UNSUBSCRIBE_EVENT = IOW('V', 91, V4l2_event_subscription)
-    # CREATE_BUFS = IOWR('V', 92, V4l2_Create_Buffers)
-    PREPARE_BUF = IOWR('V', 93, V4l2_Buffer)
-    G_SELECTION = IOWR('V', 94, V4l2_Selection)
-    S_SELECTION = IOWR('V', 95, V4l2_Selection)
-    # DECODER_CMD = IOWR('V', 96, V4l2_Decoder_Cmd)
-    # TRY_DECODER_CMD = IOWR('V', 97, V4l2_Decoder_Cmd)
-    ENUM_DV_TIMINGS = IOWR('V', 98, V4l2_Enum_Dv_Timings)
-    QUERY_DV_TIMINGS = IOR('V', 99, V4l2_Dv_Timings)
-    DV_TIMINGS_CAP = IOWR('V', 100, V4l2_Dv_Timings_Cap)
-    # ENUM_FREQ_BANDS = IOWR('V', 101, V4l2_Frequency_Band)
+    QUERYCAP = ior('V', 0, V4l2_Capability)
+    ENUM_FMT = iow('V', 2, V4l2_Fmtdesc)
+    G_FMT = iowr('V', 4, V4l2_Format)
+    S_FMT= iowr('V',  5, V4l2_Format)
+    REQBUFS = iowr('V', 8, V4l2_Requestbuffers)
+    QUERYBUF = iowr('V', 9, V4l2_Buffer)
+    G_FBUF = ior('V', 10, V4l2_Framebuffer)
+    S_FBUF = iow('V', 11, V4l2_Framebuffer)
+    OVERLAY = iow('V', 14, c_int)
+    QBUF = iowr('V', 15, V4l2_Buffer)
+    EXPBUF = iowr('V', 16, V4l2_Exportbuffer)
+    DQBUF = iowr('V', 17, V4l2_Buffer)
+    STREAMON = iow('V', 18, c_int)
+    STREAMOFF = iow('V', 19, c_int)
+    G_PARM = iowr('V', 21, V4l2_Streamparm)
+    S_PARM = iowr('V', 22, V4l2_Streamparm)
+    G_STD = ior('V', 23, V4l2_Std_Id)
+    S_STD = iow('V', 24, V4l2_Std_Id)
+    ENUMSTD = iowr('V', 25, V4l2_Standard)
+    ENUMINPUT = iowr('V', 26, V4l2_Input)
+    G_CTRL = iowr('V', 27, V4l2_Control)
+    S_CTRL = iowr('V', 28, V4l2_Control)
+    G_TUNER = iowr('V', 29, V4l2_Tuner)
+    S_TUNER = iow('V', 30, V4l2_Tuner)
+    G_AUDIO = ior('V', 33, V4l2_Audio)
+    S_AUDIO = iow('V', 34, V4l2_Audio)
+    QUERYCTRL = iowr('V', 36, V4l2_Queryctrl)
+    QUERYMENU = iowr('V', 37, V4l2_Querymenu)
+    G_INPUT = ior('V', 38, c_int)
+    S_INPUT = iowr('V', 39, c_int)
+    G_EDID = iowr('V', 40, V4l2_Edid)
+    S_EDID = iowr('V', 41, V4l2_Edid)
+    G_OUTPUT = ior('V', 46, c_int)
+    S_OUTPUT = iowr('V', 47, c_int)
+    ENUMOUTPUT = iowr('V', 48, V4l2_Output)
+    G_AUDOUT = ior('V', 49, V4l2_Audioout)
+    S_AUDOUT = iow('V', 50, V4l2_Audioout)
+    G_MODULATOR = iowr('V', 54, V4l2_Modulator)
+    S_MODULATOR = iow('V', 55, V4l2_Modulator)
+    G_FREQUENCY = iowr('V', 56, V4l2_Frequency)
+    S_FREQUENCY = iow('V', 57, V4l2_Frequency)
+    CROPCAP = iowr('V', 58, V4l2_Cropcap)
+    G_CROP = iowr('V', 59, V4l2_Crop)
+    S_CROP = iow('V', 60, V4l2_Crop)
+    G_JPEGCOMP = ior('V', 61, V4l2_Jpegcompression)
+    S_JPEGCOMP = iow('V', 62, V4l2_Jpegcompression)
+    QUERYSTD = ior('V', 63, V4l2_Std_Id)
+    TRY_FMT = iowr('V', 64, V4l2_Format)
+    ENUMAUDIO = iowr('V', 65, V4l2_Audio)
+    ENUMAUDOUT = iowr('V', 66, V4l2_Audioout)
+    G_PRIORITY = ior('V', 67, c_type(V4l2_Priority))
+    S_PRIORITY = iow('V', 68, c_type(V4l2_Priority))
+    G_SLICED_VBI_CAP = iowr('V', 69, V4l2_Sliced_Vbi_Cap)
+    LOG_STATUS = io('V', 70)
+    G_EXT_CTRLS = iowr('V', 71, V4l2_Ext_Controls)
+    S_EXT_CTRLS = iowr('V', 72, V4l2_Ext_Controls)
+    TRY_EXT_CTRLS = iowr('V', 73, V4l2_Ext_Controls)
+    ENUM_FRAMESIZES = iowr('V', 74, V4l2_Frmsizeenum)
+    ENUM_FRAMEINTERVALS = iowr('V', 75, V4l2_Frmivalenum)
+    G_ENC_INDEX = ior('V', 76, V4l2_Enc_Idx)
+    ENCODER_CMD = iowr('V', 77, V4l2_Encoder_Cmd)
+    TRY_ENCODER_CMD = iowr('V', 78, V4l2_Encoder_Cmd)
+    S_HW_FREQ_SEEK = iow('V', 82, V4l2_Hw_Freq_Seek)
+    S_DV_TIMINGS = iowr('V', 87, V4l2_Dv_Timings)
+    G_DV_TIMINGS = iowr('V', 88, V4l2_Dv_Timings)
+    DQEVENT = ior('V', 89, V4l2_Event)
+    SUBSCRIBE_EVENT = iow('V', 90, V4l2_Event_Subscription)
+    UNSUBSCRIBE_EVENT = iow('V', 91, V4l2_Event_Subscription)
+    CREATE_BUFS = iowr('V', 92, V4l2_Create_Buffers)
+    PREPARE_BUF = iowr('V', 93, V4l2_Buffer)
+    G_SELECTION = iowr('V', 94, V4l2_Selection)
+    S_SELECTION = iowr('V', 95, V4l2_Selection)
+    DECODER_CMD = iowr('V', 96, V4l2_Decoder_Cmd)
+    TRY_DECODER_CMD = iowr('V', 97, V4l2_Decoder_Cmd)
+    ENUM_DV_TIMINGS = iowr('V', 98, V4l2_Enum_Dv_Timings)
+    QUERY_DV_TIMINGS = ior('V', 99, V4l2_Dv_Timings)
+    DV_TIMINGS_CAP = iowr('V', 100, V4l2_Dv_Timings_Cap)
+    ENUM_FREQ_BANDS = iowr('V', 101, V4l2_Frequency_Band)
 
 
 class BASE_VIDIOC(Enum):
