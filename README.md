@@ -1,2 +1,2 @@
 # uapy
-Python wrapper for Linux UAPI
+Python wrapper for Linux UAPI ioctl
