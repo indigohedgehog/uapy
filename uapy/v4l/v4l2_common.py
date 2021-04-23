@@ -1,21 +1,20 @@
 from ctypes import *
-from enum import Enum
+from enum import IntEnum
 
-class V4l2_Sel_Tgt(Enum):
+
+class V4l2_Sel_Tgt(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
     CROP = 0x0000
-    CROP_DEFAULT = 0x0001
-    CROP_BOUNDS = 0x0002
-    NATIVE_SIZE = 0x0003
-    COMPOSE = 0x0100
-    COMPOSE_DEFAULT = 0x0101
-    COMPOSE_BOUNDS = 0x0102
-    COMPOSE_PADDED = 0x0103
+
+    (CROP_DEFAULT, CROP_BOUNDS, NATIVE_SIZE) = [(1 << 0) + x for x in range(3)]
+
+    (COMPOSE, COMPOSE_DEFAULT, COMPOSE_BOUNDS,
+     COMPOSE_PADDED) = [(1 << 8) + x for x in range(4)]
 
 
-class V4l2_Sel_Flag(Enum):
+class V4l2_Sel_Flag(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 

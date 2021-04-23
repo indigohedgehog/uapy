@@ -15,3 +15,6 @@ def _coerce(self, other):
 
 c_uint64.__or__ = _or
 c_uint64.__coerce__ = _coerce
+
+def c_type(arg):
+    return arg.__c_type__()
