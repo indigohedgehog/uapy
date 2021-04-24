@@ -2,7 +2,7 @@ from ctypes import *
 from enum import Enum, IntEnum
 from util.ioctl import *
 from util.ctypes_tools import *
-from v4l.v4l2_common import *
+from v4l2.common import *
 
 
 class Video_Max(IntEnum):
@@ -763,34 +763,10 @@ class V4l2_Std(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
-    (
-        PAL_B,
-        PAL_B1,
-        PAL_G,
-        PAL_H,
-        PAL_I,
-        PAL_D,
-        PAL_D1,
-        PAL_K,
-        PAL_M,
-        PAL_N,
-        PAL_Nc,
-        PAL_60,
-        NTSC_M,
-        NTSC_M_JP,
-        NTSC_443,
-        NTSC_M_KR,
-        SECAM_B,
-        SECAM_D,
-        SECAM_G,
-        SECAM_H,
-        SECAM_K,
-        SECAM_K1,
-        SECAM_L,
-        SECAM_LC,
-        ATSC_8_VSB,
-        #  ATSC_16_VSB) = [(1 << x) for x in range(26)]
-        ATSC_16_VSB) = [V4l2_Std_Id(1 << x).value for x in range(26)]
+    (PAL_B, PAL_B1, PAL_G, PAL_H, PAL_I, PAL_D, PAL_D1, PAL_K, PAL_M, PAL_N,
+     PAL_Nc, PAL_60, NTSC_M, NTSC_M_JP, NTSC_443, NTSC_M_KR, SECAM_B, SECAM_D,
+     SECAM_G, SECAM_H, SECAM_K, SECAM_K1, SECAM_L, SECAM_LC, ATSC_8_VSB,
+     ATSC_16_VSB) = [V4l2_Std_Id(1 << x).value for x in range(26)]
 
     NTSC = (NTSC_M | NTSC_M_JP | NTSC_M_KR)
     SECAM_DK = (SECAM_D | SECAM_K | SECAM_K1)

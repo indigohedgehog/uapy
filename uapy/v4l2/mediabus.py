@@ -2,7 +2,7 @@ from ctypes import *
 from enum import Enum, IntEnum
 from util.ioctl import *
 from util.ctypes_tools import *
-from v4l.videodev2 import *
+from v4l2.videodev import *
 
 
 class V4l2_Mbus_Framefmt(Structure):

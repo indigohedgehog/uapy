@@ -1,12 +1,10 @@
 {
-	"folders": [
-		{
-			"path": "."
-		}
-	],
-	"settings": {
-		"python.analysis.extraPaths": ["./uapy/v4l", "./uapy/util", "./uapy"]
-
-	}
-
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "python.analysis.extraPaths": ["./uapy"]
+  }
 }
