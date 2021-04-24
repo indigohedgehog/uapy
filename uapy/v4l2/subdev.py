@@ -1,9 +1,9 @@
 from ctypes import *
-from enum import Enum, IntEnum
+from enum import IntEnum
 from util.ioctl import *
 from util.ctypes_tools import *
-from v4l.v4l2_mediabus import *
-from v4l.videodev2 import *
+from v4l2.mediabus import *
+from v4l2.videodev import *
 
 
 class V4l2_Subdev_Format_Whence(IntEnum):

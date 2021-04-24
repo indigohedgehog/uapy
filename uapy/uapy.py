@@ -1,2 +1,3 @@
-from v4l.videodev2 import *
-from v4l.v4l2_subdev import *
+from v4l2.videodev import *
+from v4l2.subdev import *
+from dvb.frontend import *
