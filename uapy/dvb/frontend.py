@@ -276,11 +276,11 @@ class Dtv_Property(Structure):
     _pack_ = True
 
 
-class Dtv_Ioctl(IntEnum):
+class Dtv_Msgs(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
-    MAX_MSGS = 64
+    MAX = 64
 
 
 class Dtv_Properties(Structure):
