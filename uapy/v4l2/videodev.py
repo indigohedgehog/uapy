@@ -1032,7 +1032,7 @@ class V4l2_Query_Ext_Ctrl(Structure):
                 ('default_value', c_int64), ('flags', c_uint32),
                 ('elem_size', c_uint32), ('elems', c_uint32),
                 ('nr_of_dims', c_uint32),
-                ('dims', c_uint32 * int(str(V4l2_Ctrl.MAX_DIMS))),
+                ('dims', c_uint32 * V4l2_Ctrl.MAX_DIMS),
                 ('reserved', c_uint32 * 32)]
 
 
@@ -1208,7 +1208,7 @@ class V4l2_Enc_Idx(IntEnum):
 class V4l2_Enc_Idx(Structure):
     _fields_ = [('entries', c_uint32), ('entries_cap', c_uint32),
                 ('reserved', c_uint32 * 4),
-                ('entry', V4l2_Enc_Idx_Entry * int(str(V4l2_Enc_Idx.ENTRIES)))]
+                ('entry', V4l2_Enc_Idx_Entry * V4l2_Enc_Idx.ENTRIES)]
 
 
 class V4l2_Enc_Cmd(IntEnum):
@@ -1388,7 +1388,7 @@ class V4l2_Pix_Format_Mplane(Structure):
                 ('pixelformat', c_uint32), ('field', c_uint32),
                 ('colorspace', c_uint32),
                 ('plane_fmt',
-                 V4l2_Plane_Pix_Format * int(str(Video_Max.PLANES))),
+                 V4l2_Plane_Pix_Format * Video_Max.PLANES),
                 ('num_planes', c_uint8), ('flags', c_uint8), ('_u', _u),
                 ('quantization', c_uint8), ('xfer_func', c_uint8),
                 ('reserved', c_uint8 * 7)]

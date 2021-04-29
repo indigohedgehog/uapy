@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='uapy',
-    version='0.2.0',
+    version='1.0.0',
     author="Andres Castillo",
     author_email="indigohedgehog@gmail.com",
     description='Python wrapper for Linux UAPI ioctl',
@@ -24,6 +24,9 @@ setup(
         "Operating System :: POSIX :: Linux", "Topic :: Multimedia",
         "Topic :: Multimedia :: Video"
     ],
+    install_requires=[
+        'ctypes',
+    ],    
     package_dir={"": "uapy"},
     packages=find_packages(where="uapy"),
     python_requires=">=3.6",
