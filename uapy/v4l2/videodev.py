@@ -1646,7 +1646,7 @@ class Vidioc(IntEnum):
     QUERY_EXT_CTRL = iowr('V', 103, V4l2_Query_Ext_Ctrl)
 
 
-class BASE_VIDIOC(IntEnum):
+class Base_Vidioc(IntEnum):
     def __str__(self):
         return '{0}'.format(self.value)
 
