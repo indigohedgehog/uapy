@@ -23,10 +23,7 @@ setup(
         "License :: OSI Approved :: BSD License",
         "Operating System :: POSIX :: Linux", "Topic :: Multimedia",
         "Topic :: Multimedia :: Video"
-    ],
-    install_requires=[
-        'ctypes',
-    ],    
+    ], 
     package_dir={"": "uapy"},
     packages=find_packages(where="uapy"),
     python_requires=">=3.6",
