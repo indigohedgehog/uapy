@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='uapy',
-    version='1.0.1',
+    version='1.0.2',
     author="Andres Castillo",
     author_email="indigohedgehog@gmail.com",
     description='Python wrapper for Linux UAPI ioctl',
